@@ -28,8 +28,8 @@ db.initialise = async () => {
       update_user_id INTEGER
       )
     `)
-    // Don't delete the list even if users are deleted as there maybe be multiple users sharing it
-    // If need to cascade delete next time, use 'FOREIGN KEY (create_user_id) REFERENCES Users(id) ON DELETE CASCADE'
+  // Don't delete the list even if users are deleted as there maybe be multiple users sharing it
+  // If need to cascade delete next time, use `FOREIGN KEY (create_user_id) REFERENCES Users(id) ON DELETE CASCADE`
   
   await pool.query(`
     CREATE TABLE IF NOT EXISTS Tasks (
@@ -45,11 +45,14 @@ db.initialise = async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS Users_Share_Lists (
       list_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
+      shared_by_user_id INTEGER NOT NULL,
+      shared_to_user_id INTEGER NOT NULL,
       FOREIGN KEY (list_id) REFERENCES Lists(id) ON DELETE CASCADE,
-      FOREIGN KEY (user_id) REFERENCES Lists(id) ON DELETE CASCADE
-    )
-  `)
+      FOREIGN KEY (shared_to_user_id) REFERENCES Lists(id) ON DELETE CASCADE
+      )
+    `)
+  // Don't delete the shared link even if the user that share has been deleted
+  // If need to cascade delete next time, use `FOREIGN KEY (shared_by_user_id) REFERENCES Lists(id) ON DELETE CASCADE`
 }
 
 // For general query using the same pool without return value
