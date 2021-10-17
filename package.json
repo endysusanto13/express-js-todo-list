@@ -18,6 +18,7 @@
     "swagger-ui-express": "^4.1.6"
   },
   "devDependencies": {
+    "@types/jest": "^27.0.2",
     "eslint": "^8.0.1",
     "jest": "^27.2.5",
     "supertest": "^6.1.6"
