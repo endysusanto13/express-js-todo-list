@@ -25,21 +25,21 @@ afterAll(async () => {
 
 describe('Insert data to table Users', () => {
   it('should return User object', async () => {
-    const user = await db.insertUser(newUser)
-    expect(user).toEqual(newUser)
+    const user = await db.insertUser(new User({ username, email, password_hash: password }))
+    expect(user).toMatchObject(newUser)
   })
 })
 
 describe('Find data in table Users with username', () => {
   it('should return User object', async () => {
     const user = await db.findUserByUsername(username)
-    expect(user).toEqual(newUser)
+    expect(user).toMatchObject(newUser)
   })
 })
 
 describe('Find data in table Users with email', () => {
   it('should return User object', async () => {
     const user = await db.findUserByEmail(email)
-    expect(user).toEqual(newUser)
+    expect(user).toMatchObject(newUser)
   })
 })
