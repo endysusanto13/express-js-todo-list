@@ -95,7 +95,11 @@ describe('PATCH /list/:listId', () => {
     title: 'modified_todo_list'
   }
 
-  const updatedRefList = { ...refList, title:updatedList.title, update_user_id:userId }
+  const updatedRefList = { 
+    ...refList, 
+    title:updatedList.title, 
+    update_user_id:userId 
+  }
 
   describe('create an item for test purpose', () => {
     it('should return 201 and list title as the response', async () => {
@@ -219,13 +223,30 @@ describe('DELETE /list/:listId', () => {
     })
 
     describe('by users with access', () => {
+      const deletedList = { 
+        ...refList, 
+        is_deleted:true,
+        update_user_id:userId
+      }
       it('should return 200 and success text', async () => {
         return await request(app)
           .delete('/list/' + listId)
           .set('Authorization', token)
           .expect(200)
           .then(response => {
-            expect(response.text).toEqual(`TODO list '${testList.title}' with id ${listId} has been deleted successfully`)
+            expect(response.body).toMatchObject(deletedList)
+          })
+      })
+    })
+
+    describe('that has been deleted', () => {
+      it('should return 404', async () => {
+        return await request(app)
+          .delete('/list/' + listId)
+          .set('Authorization', token)
+          .expect(404)
+          .then(response => {
+            expect(response.text).toEqual(`List id ${listId} is not found`)
           })
       })
     })

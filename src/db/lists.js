@@ -10,6 +10,22 @@ module.exports = (pool) => {
     )
     return new List(res.rows[0])
   }
+  // db.getAllLists
+    // should return a new object with respective IDs and also createor
+    // {
+    //   created_list: [{id:1, title:'list1'},...]
+    //   shared_list: [{id:1, title:'list1', create_user_id:2, shared_user_id:[1,2,3] } ,...]
+    // }
+  // db.getList
+    // should return a new object with ID
+    // {
+    //   id:1, 
+    //   title: 'title', 
+    //   create_user_id:3,
+    //   shared_user_id:[1,2,3], 
+    //   update_user_id:2,
+    //   tasks: ['task1', 'task2', 'task3']
+    // }
 
   db.findListByListId = async (listId) => {
     const res = await pool.query(`
@@ -30,22 +46,31 @@ module.exports = (pool) => {
     return res.rowCount ? new List(res.rows[0]) : null
   }
 
+  // db.getAllLists = async () => {
+  //   const res = await pool.query(`
+  //     SELECT * FROM Lists
+  //   `)
+  //   return res.rows.map(row => new List(row))
+  // }
+  
   db.updateList = async (userId, newTitle, listId) => {
     const res = await pool.query(`
-      UPDATE Lists SET update_user_id=$1, title=$2 WHERE id=$3 RETURNING *
+      UPDATE Lists SET update_user_id=$1, title=$2 
+      WHERE id=$3 RETURNING *
       `,
       [userId, newTitle, listId]
     )
     return new List(res.rows[0])
   }
 
-  db.deleteList = async (listId) => {
+  db.deleteList = async (userId, listId) => {
     const res = await pool.query(`
-      DELETE FROM Lists WHERE id=$1
+      UPDATE Lists SET update_user_id=$1, is_deleted=TRUE 
+      WHERE id=$2 RETURNING *
       `,
-      [listId]
+      [userId, listId]
     )
-    return res.rowCount > 0
+    return new List(res.rows[0])
   }
 
   return db

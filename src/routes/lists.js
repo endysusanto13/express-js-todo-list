@@ -136,16 +136,15 @@ module.exports = (db) => {
     if (!list) {
       res.status(404).send(`List id ${listId} is not found`)
     }
+    else if (list.is_deleted) {
+      res.status(404).send(`List id ${listId} is not found`)
+    }
     else if (list.create_user_id !== reqUserId) {
       res.status(403).send(`You are not authorized to delete this TODO list.`)
     }
     else {
-      const isDeleted = await db.deleteList(listId)
-      if (isDeleted) {
-        res.send(`TODO list '${list.title}' with id ${listId} has been deleted successfully`)
-      } else {
-        res.status(500).send(`Unknown error has occurred.`)
-      }
+      const deletedList = await db.deleteList(reqUserId, listId)
+      res.send(deletedList)
     }
   })
 

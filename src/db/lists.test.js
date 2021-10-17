@@ -4,12 +4,13 @@ const List = require('../models/list')
 const db = require('./index')
 
 const testUser = new User({ 
+  id: 1,
   username:'test_username',
   email:'test@gmail.com', 
   password_hash:'test_password'
 })
 
-const id = 1
+const listId = 1
 const title = 'test_title'
 const is_shared = false
 const is_deleted = false
@@ -17,7 +18,7 @@ const create_user_id = 1
 const update_user_id = null
 
 const newList = new List({ 
-  id,
+  id:listId,
   title,
   is_shared,
   is_deleted,
@@ -83,29 +84,30 @@ describe('Querying into Lists table to', () => {
   describe('update list', () => {
     const anotherAuthUserId = 2
     const updatedTitle = 'updated_test_title'
-    const updatedList = new List({ 
-      id,
-      title:updatedTitle,
-      is_shared,
-      is_deleted,
-      create_user_id,
-      update_user_id:anotherAuthUserId,
-    })
+    const updatedList = {
+      ...newList, 
+      title:updatedTitle, 
+      update_user_id:anotherAuthUserId 
+    }
+
     it('should return List object', async () => {
-      const list = await db.updateList(anotherAuthUserId, updatedTitle, id)
+      const list = await db.updateList(anotherAuthUserId, updatedTitle, listId)
       expect(list).toMatchObject(updatedList)
     })
   })
 
   describe('delete list', () => {
-    it('should return true', async () => {
-      const list = await db.deleteList(id)
-      expect(list).toBeTruthy()
-    })
+    const updatedTitle = 'updated_test_title'
 
-    it('should return false when the list is not found', async () => {
-      const list = await db.deleteList(id)
-      expect(list).toBeFalsy()
+    const deletedList = { 
+      ...newList,
+      title:updatedTitle, 
+      is_deleted:true,
+      update_user_id:testUser.id
+    }
+    it('should return List object with is_deleted attribute is true and update update_user_id attribute', async () => {
+      const list = await db.deleteList(testUser.id, listId)
+      expect(list).toMatchObject(deletedList)
     })
   })
 })
