@@ -11,4 +11,3 @@ describe('Creating Tables', () => {
 afterAll(async () => {
   await db.end()
 })
-

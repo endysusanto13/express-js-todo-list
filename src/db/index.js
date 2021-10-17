@@ -4,7 +4,9 @@ let pool = new Pool({
   connectionString: process.env.DATABASE_URL
 })
 
-const db = {}
+const db = {
+  ...require('./users')(pool),
+}
 
 db.initialise = async () => {
   await pool.query(`
