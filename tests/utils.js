@@ -18,7 +18,7 @@ utils.db = db
 utils.setup = async () => {
   await db.initialise()
   await db.clearUsersTable()
-  await db.clearItemsTable()
+  await db.clearListsTable()
   await db.clearTasksTable()
   await db.clearUsersShareListsTable()
 }

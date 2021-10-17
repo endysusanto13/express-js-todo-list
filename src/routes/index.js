@@ -38,6 +38,7 @@ module.exports = (authMiddleware, authService, db) => {
   // All routes from this point will use the auth middleware
   router.use(authMiddleware)
 
+  router.use('/list', require('./lists')(db))
 
   return router
 }

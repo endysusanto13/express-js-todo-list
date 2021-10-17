@@ -6,6 +6,7 @@ let pool = new Pool({
 
 const db = {
   ...require('./users')(pool),
+  ...require('./lists')(pool),
 }
 
 db.initialise = async () => {
@@ -46,11 +47,15 @@ db.initialise = async () => {
   `)
 }
 
+// For general query using the same pool without return value
+db.query = async (queryStr,array) => {
+  await pool.query(queryStr,array)
+}
 db.clearUsersTable = async () => {
   await pool.query('DELETE FROM Users')
   await pool.query('ALTER SEQUENCE users_id_seq RESTART')
 }
-db.clearItemsTable = async () => {
+db.clearListsTable = async () => {
   await pool.query('DELETE FROM Lists')
   await pool.query('ALTER SEQUENCE lists_id_seq RESTART')
 }
