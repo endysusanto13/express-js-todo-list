@@ -13,14 +13,16 @@ const id = 1
 const title = 'test_title'
 const is_shared = false
 const is_deleted = false
-const user_id = 1
+const create_user_id = 1
+const update_user_id = null
 
 const newList = new List({ 
   id,
   title,
   is_shared,
   is_deleted,
-  user_id
+  create_user_id,
+  update_user_id
 })
 
 beforeAll(async () => {
@@ -42,22 +44,39 @@ afterAll(async () => {
 describe('Querying into Lists table to', () => {
   describe('insert data', () => {
     it('should return List object', async () => {
-      const list = await db.insertList(new List({ title, is_shared, is_deleted, user_id }))
+      const list = await db.insertList(new List({ title, is_shared, is_deleted, create_user_id, update_user_id }))
       expect(list).toMatchObject(newList)
     })
   })
 
-  describe('find list by title', () => {
-    it('should return List object if exists', async () => {
-      const list = await db.findListByTitle(newList.title)
-      expect(list).toMatchObject(newList)
+  describe('find list', () => {
+    describe('by id only', () => {
+      it('should return List object if exists', async () => {
+        const list = await db.findListByListId(newList.id)
+        expect(list).toMatchObject(newList)
+      })
+      
+      it('should return null if does not exists', async () => {
+        const list = await db.findListByListId(5)
+        expect(list).toBeFalsy()
+      })
     })
-  })
 
-  describe('find list by title', () => {
-    it('should return null if does not exists', async () => {
-      const list = await db.findListByTitle("wrong_title")
-      expect(list).toBeFalsy()
+    describe('by title based on current user', () => {
+      it('should return List object if exists', async () => {
+        const list = await db.findListByTitle(newList.create_user_id, newList.title)
+        expect(list).toMatchObject(newList)
+      })
+
+      it('should return null if id is incorrect but title is correct', async () => {
+        const list = await db.findListByTitle(5, newList.title)
+        expect(list).toBeFalsy()
+      })
+
+      it('should return null if title is incorrect but id is correct', async () => {
+        const list = await db.findListByTitle(newList.create_user_id, "wrong_title")
+        expect(list).toBeFalsy()
+      })
     })
   })
 })

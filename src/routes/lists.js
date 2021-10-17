@@ -39,15 +39,15 @@ module.exports = (db) => {
    *              $ref: '#/components/schemas/List'
    */
   router.post('/', async (req, res, next) => {
+    const userId = req.userId
     const { title } = req.body
-    const isCreated = await db.findListByTitle(title)
+    const isCreated = await db.findListByTitle(userId, title)
     if (isCreated) {
       errorMsg = `'${title}' has already been created by you.`
       res.status(400).send(errorMsg)
     }
     else {
-      const userId = req.userId
-      const newList = new List({ title, is_shared:false, is_deleted:false, user_id: userId })
+      const newList = new List({ title, is_shared:false, is_deleted:false, create_user_id: userId, update_user_id: null })
       const list = await db.insertList(newList)
       res.status(201).send(list)
     }

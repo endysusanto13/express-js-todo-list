@@ -24,16 +24,21 @@ db.initialise = async () => {
       title VARCHAR(100) NOT NULL,
       is_shared BOOLEAN NOT NULL,
       is_deleted BOOLEAN NOT NULL,
-      user_id INTEGER NOT NULL,
-      FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
-    )
-  `)
+      create_user_id INTEGER NOT NULL,
+      update_user_id INTEGER
+      )
+    `)
+    // Don't delete the list even if users are deleted as there maybe be multiple users sharing it
+    // If need to cascade delete next time, use 'FOREIGN KEY (create_user_id) REFERENCES Users(id) ON DELETE CASCADE'
+  
   await pool.query(`
     CREATE TABLE IF NOT EXISTS Tasks (
       id SERIAL PRIMARY KEY,
       title VARCHAR(100) NOT NULL,
       is_deleted BOOLEAN NOT NULL,
       list_id INTEGER NOT NULL,
+      create_user_id INTEGER NOT NULL,
+      update_user_id INTEGER,
       FOREIGN KEY (list_id) REFERENCES Lists(id) ON DELETE CASCADE
     )
   `)

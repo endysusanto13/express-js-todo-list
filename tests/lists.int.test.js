@@ -1,5 +1,6 @@
 const request = require('supertest')
 const utils = require('./utils')
+const List = require('../src/models/list')
 
 const app = utils.app
 const db = utils.db
@@ -23,6 +24,15 @@ describe('POST /list', () => {
   const list = {
     title: 'new_todo_list'
   }
+
+  const refList = new List({ 
+    id:1,
+    title:list.title,
+    is_shared: false,
+    is_deleted:false,
+    create_user_id:1,
+    update_user_id:null
+  })
   
   describe('create an item', () => {
     it('should return 201 and list title as the response', async () => {
@@ -32,7 +42,7 @@ describe('POST /list', () => {
         .send(list)
         .expect(201)  
         .then(response => {
-          expect(response.body).toMatchObject(list)
+          expect(response.body).toMatchObject(refList)
         })
     })
   })
