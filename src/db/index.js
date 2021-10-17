@@ -60,6 +60,13 @@ db.clearUsersShareListsTable = async () => {
   await pool.query('DELETE FROM Users_Share_Lists')
 }
 
+db.deleteAllTables = async () => {
+  await pool.query('DROP TABLE IF EXISTS Users CASCADE;')
+  await pool.query('DROP TABLE IF EXISTS Lists CASCADE;')
+  await pool.query('DROP TABLE IF EXISTS Tasks CASCADE;')
+  await pool.query('DROP TABLE IF EXISTS Users_Share_Lists CASCADE;')
+}
+
 db.end = async () => {
   await pool.end()
 }
