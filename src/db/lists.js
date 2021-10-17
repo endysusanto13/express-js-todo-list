@@ -5,7 +5,8 @@ module.exports = (pool) => {
 
   db.insertList = async (list) => {
     const res = await pool.query(
-      'INSERT INTO Lists (title, is_shared, is_deleted, create_user_id, update_user_id) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      `INSERT INTO Lists (title, is_shared, is_deleted, create_user_id, update_user_id) 
+      VALUES ($1,$2,$3,$4,$5) RETURNING *`,
       [list.title, list.is_shared, list.is_deleted, list.create_user_id, list.update_user_id]
     )
     return new List(res.rows[0])

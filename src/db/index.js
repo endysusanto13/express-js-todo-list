@@ -7,6 +7,7 @@ let pool = new Pool({
 const db = {
   ...require('./users')(pool),
   ...require('./lists')(pool),
+  ...require('./tasks')(pool),
 }
 
 db.initialise = async () => {
