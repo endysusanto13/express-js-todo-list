@@ -10,6 +10,7 @@ module.exports = (pool) => {
     )
     return new List(res.rows[0])
   }
+
   db.findListByListId = async (listId) => {
     const res = await pool.query(`
       SELECT * FROM Lists WHERE id=$1
@@ -29,6 +30,23 @@ module.exports = (pool) => {
     return res.rowCount ? new List(res.rows[0]) : null
   }
 
+  db.updateList = async (userId, newTitle, listId) => {
+    const res = await pool.query(`
+      UPDATE Lists SET update_user_id=$1, title=$2 WHERE id=$3 RETURNING *
+      `,
+      [userId, newTitle, listId]
+    )
+    return new List(res.rows[0])
+  }
+
+  db.deleteList = async (listId) => {
+    const res = await pool.query(`
+      DELETE FROM Lists WHERE id=$1
+      `,
+      [listId]
+    )
+    return res.rowCount > 0
+  }
 
   return db
 }

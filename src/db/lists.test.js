@@ -79,4 +79,33 @@ describe('Querying into Lists table to', () => {
       })
     })
   })
+
+  describe('update list', () => {
+    const anotherAuthUserId = 2
+    const updatedTitle = 'updated_test_title'
+    const updatedList = new List({ 
+      id,
+      title:updatedTitle,
+      is_shared,
+      is_deleted,
+      create_user_id,
+      update_user_id:anotherAuthUserId,
+    })
+    it('should return List object', async () => {
+      const list = await db.updateList(anotherAuthUserId, updatedTitle, id)
+      expect(list).toMatchObject(updatedList)
+    })
+  })
+
+  describe('delete list', () => {
+    it('should return true', async () => {
+      const list = await db.deleteList(id)
+      expect(list).toBeTruthy()
+    })
+
+    it('should return false when the list is not found', async () => {
+      const list = await db.deleteList(id)
+      expect(list).toBeFalsy()
+    })
+  })
 })

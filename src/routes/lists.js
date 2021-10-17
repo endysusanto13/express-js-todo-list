@@ -53,5 +53,101 @@ module.exports = (db) => {
     }
   })
 
+  /**
+   * @openapi
+   * /list/{listId}:
+   *  patch:
+   *    tags:
+   *    - list
+   *    description: Update a list
+   *    parameters:
+   *      - in: path
+   *        name: listId
+   *        schema:
+   *          type: integer
+   *        required: true
+   *    requestBody:
+   *      required: true
+   *      content:
+   *        application/json:
+   *          schema:
+   *            $ref: '#/components/schemas/List'
+   *    responses:
+   *      200:
+   *        description: OK
+   *      401:
+   *        description: User is not logged in
+   *      403:
+   *        description: User do not have access
+   *      404:
+   *        description: List is not found
+   */
+  router.patch('/:listId', async (req, res, next) => {
+    const listId = req.params.listId
+    const reqUserId = req.userId
+    const { title } = req.body
+    const list = await db.findListByListId(listId)
+    // #TODO - Check list in shared list later on
+    if (!list) {
+      res.status(404).send(`List id ${listId} is not found`)
+    }
+    else if (list.create_user_id !== reqUserId) {
+      res.status(403).send(`You are not authorized to edit this TODO list.`) 
+    }
+    else if (title === list.title) {
+      res.status(400).send(`There is no change to ${list.title}.`) 
+    }
+    else {
+      const updatedList = await db.updateList(reqUserId, title, listId)
+      res.send(updatedList)
+    }
+  })
+
+
+  /**
+   * @openapi
+   * /list/{listId}:
+   *  delete:
+   *    tags:
+   *    - list
+   *    description: Delete a list
+   *    parameters:
+   *      - in: path
+   *        name: listId
+   *        schema:
+   *          type: integer
+   *        required: true
+   *    responses:
+   *      200:
+   *        description: OK
+   *      401:
+   *        description: User is not logged in
+   *      403:
+   *        description: User do not have access
+   *      404:
+   *        description: List is not found
+   */
+  router.delete('/:listId', async (req, res, next) => {
+    const listId = req.params.listId
+    const reqUserId = req.userId
+    const list = await db.findListByListId(listId)
+
+    // #TODO - Check list in shared list later on
+    if (!list) {
+      res.status(404).send(`List id ${listId} is not found`)
+    }
+    else if (list.create_user_id !== reqUserId) {
+      res.status(403).send(`You are not authorized to delete this TODO list.`)
+    }
+    else {
+      const isDeleted = await db.deleteList(listId)
+      if (isDeleted) {
+        res.send(`TODO list '${list.title}' with id ${listId} has been deleted successfully`)
+      } else {
+        res.status(500).send(`Unknown error has occurred.`)
+      }
+    }
+  })
+
   return router
 }
