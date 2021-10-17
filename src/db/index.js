@@ -58,7 +58,6 @@ db.clearTasksTable = async () => {
 }
 db.clearUsersShareListsTable = async () => {
   await pool.query('DELETE FROM Users_Share_Lists')
-  await pool.query('ALTER SEQUENCE users_share_lists_id_seq RESTART')
 }
 
 db.end = async () => {
