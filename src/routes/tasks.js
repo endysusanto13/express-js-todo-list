@@ -60,19 +60,35 @@ module.exports = (db) => {
     if (!list || list.is_deleted) {
       res.status(404).send(`List id ${listId} is not found.`)
     }
-    else if (list.create_user_id !== reqUserId) {
+    else if (list.create_user_id !== reqUserId && !list.is_shared) {
       res.status(403).send(`You are not authorized to edit this TODO list.`) 
     }
     else {
-      const isCreated = await db.findTaskByTitle(listId, title)
-      if (isCreated) {
-        errorMsg = `'${title}' has already been created by you.`
-        res.status(400).send(errorMsg)
+      const user = await db.findUserByID(reqUserId)
+      const reqEmail = user.email
+
+      let hasAccess = list.create_user_id === reqUserId
+
+      const sharedListArr = await db.getSharedList(listId)
+      if (sharedListArr.length > 0 && !hasAccess) {
+        sharedListArr.map((sharedList) => {
+          if (sharedList.shared_with_email === reqEmail) { hasAccess = true }
+        })
+      }
+      if (!hasAccess) {
+        res.status(403).send(`You are not authorized to edit this TODO list.`) 
       }
       else {
-        const newTask = new Task({ title, is_deleted:false, create_user_id: reqUserId, update_user_id: null, list_id:listId })
-        const task = await db.insertTask(newTask)
-        res.status(201).send(task)
+        const isCreated = await db.findTaskByTitle(listId, title)
+        if (isCreated) {
+          errorMsg = `'${title}' has already been created by you.`
+          res.status(400).send(errorMsg)
+        }
+        else {
+          const newTask = new Task({ title, is_deleted:false, create_user_id: reqUserId, update_user_id: null, list_id:listId })
+          const task = await db.insertTask(newTask)
+          res.status(201).send(task)
+        }
       }
     }
   })
@@ -121,20 +137,38 @@ module.exports = (db) => {
     if (!list || list.is_deleted) {
       res.status(404).send(`List id ${listId} is not found.`)
     }
-    // #TODO - Check task in shared task later on
-    else if (list.create_user_id !== reqUserId) {
+    else if (list.create_user_id !== reqUserId && !list.is_shared) {
       res.status(403).send(`You are not authorized to edit this TODO list.`) 
     }
-    else if (!task || task.is_deleted) {
-      res.status(404).send(`Task id ${taskId} is not found.`)
-    }
-    else if (title === task.title) {
-      res.status(400).send(`There is no change to ${task.title}.`) 
-    }
     else {
-      const updatedTask = await db.updateTask(reqUserId, title, taskId)
-      res.send(updatedTask)
+      const user = await db.findUserByID(reqUserId)
+      const reqEmail = user.email
+
+      let hasAccess = list.create_user_id === reqUserId
+
+      const sharedListArr = await db.getSharedList(listId)
+      if (sharedListArr.length > 0 && !hasAccess) {
+        sharedListArr.map((sharedList) => {
+          if (sharedList.shared_with_email === reqEmail) { hasAccess = true }
+        })
+      }
+      if (!hasAccess) {
+        res.status(403).send(`You are not authorized to delete this TODO list.`) 
+      }
+      else {
+        if (!task || task.is_deleted) {
+          res.status(404).send(`Task id ${taskId} is not found.`)
+        }
+        else if (title === task.title) {
+          res.status(400).send(`There is no change to ${task.title}.`) 
+        }
+        else {
+          const updatedTask = await db.updateTask(reqUserId, title, taskId)
+          res.send(updatedTask)
+        }
+      }
     }
+
   })
 
 
@@ -175,16 +209,31 @@ module.exports = (db) => {
     if (!list || list.is_deleted) {
       res.status(404).send(`List id ${listId} is not found.`)
     }
-    // #TODO - Check task in shared task later on
-    else if (list.create_user_id !== reqUserId) {
+    else if (list.create_user_id !== reqUserId && !list.is_shared) {
       res.status(403).send(`You are not authorized to delete this TODO list.`) 
     }
-    else if (!task || task.is_deleted) {
-      res.status(404).send(`Task id ${taskId} is not found.`)
-    }
     else {
-      const deletedTask = await db.deleteTask(reqUserId, taskId)
-      res.send(deletedTask)
+      const user = await db.findUserByID(reqUserId)
+      const reqEmail = user.email
+
+      let hasAccess = list.create_user_id === reqUserId
+
+      const sharedListArr = await db.getSharedList(listId)
+      if (sharedListArr.length > 0 && !hasAccess) {
+        sharedListArr.map((sharedList) => {
+          if (sharedList.shared_with_email === reqEmail) { hasAccess = true }
+        })
+      }
+      if (!hasAccess) {
+        res.status(403).send(`You are not authorized to delete this TODO list.`) 
+      }
+      else if (!task || task.is_deleted) {
+        res.status(404).send(`Task id ${taskId} is not found.`)
+      }
+      else {
+        const deletedTask = await db.deleteTask(reqUserId, taskId)
+        res.send(deletedTask)
+      }
     }
   })
 

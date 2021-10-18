@@ -2,6 +2,7 @@ const request = require('supertest')
 const utils = require('./utils')
 const List = require('../src/models/list')
 const Task = require('../src/models/task')
+const Users_Share_Lists = require('../src/models/share');
 
 const app = utils.app
 const db = utils.db
@@ -156,7 +157,7 @@ describe('PATCH /list/:listId/task/:taskId', () => {
 
   describe('update task', () => {
     describe('by users with access', () => {
-      it('should return Task object', async () => {
+      it('should return 200', async () => {
         return await request(app)
           .patch(`/list/${listId}/task/${taskId}`)
           .set('Authorization', token)
@@ -305,6 +306,141 @@ describe('DELETE /:listId/task/:taskId', () => {
         .then(response => {
           expect(response.text).toEqual(`Task id ${taskId} is not found.`)
         })
+    })
+  })
+})
+
+describe('Test features of sharing lists', () => {
+  let tokens = ['','','']
+
+  const testUser1 = {
+    username:'1test_user', 
+    email: '1test@gmail.com', 
+    password: '1test_password'
+  }
+  const testUser2 = {
+    username:'2test_user', 
+    email: '2test@gmail.com', 
+    password: '2test_password'
+  }
+  const testUsers = [testUser1, testUser2]
+  
+  const list = new List({ 
+    title:'brand_new_todo_list',
+  })
+
+  const sharedList1 = new Users_Share_Lists({
+    list_id:1,
+    shared_by_email:'1test@gmail.com',
+    shared_with_email:'2test@gmail.com',
+    is_deleted:false,
+  })
+
+
+  const updatedTask = {
+    title: 'modified_todo_task_on_shared_list'
+  }
+
+  const updatedRefTask = { 
+    ...refTask, 
+    title:updatedTask.title,
+    create_user_id:2,
+    update_user_id:2,
+    list_id:sharedList1.list_id
+  }
+  const deletedTask = {
+    ...updatedRefTask, 
+    is_deleted:true
+  }
+
+  beforeAll(async () => {
+    await db.clearUsersTable()
+    await db.clearListsTable()
+    await db.clearTasksTable()
+  })
+
+  describe('prepare list for test', () => {
+    testUsers.map( async (testUser, index) => {
+      describe(`create user ${index+1}`, () => {
+        it('should return 201 and token', async () => {
+          const token  = await utils.registerUser(testUser.username, testUser.email, testUser.password)
+          tokens[index] = token
+        })
+      })
+    })
+  
+    describe(`create list`, () => {
+      it('should return 201 and list title as the response', async () => {
+        return await request(app)
+          .post('/list')
+          .set('Authorization', tokens[0])
+          .send(list)
+          .expect(201)
+          .then(response => {
+            expect(response.body)
+              .toMatchObject({ 
+                id:1,
+                title:list.title,
+                is_shared:false,
+                is_deleted:false,
+                create_user_id:1,
+                update_user_id:null
+              })
+          })
+      })
+    })
+    
+    describe('sharing a list', () => {
+        it('should return 200', async () => {
+          return await request(app)
+            .post(`/share/list/${sharedList1.list_id}`)
+            .set('Authorization', tokens[0])
+            .send({ email:testUser2.email })
+            .expect(200)  
+            .then(response => {
+              expect(response.body).toMatchObject(sharedList1)
+            })
+        })
+    })
+  })
+
+  describe('users that do not create the list but has access should be able to', () => {
+    describe('create a task', () => {
+      it('should return 201 and task title as the response', async () => {
+        return await request(app)
+          .post(`/list/${sharedList1.list_id}/task`)
+          .set('Authorization', tokens[1])
+          .send(testTask)
+          .expect(201)
+          .then(response => {
+            expect(response.body).toMatchObject({...refTask, create_user_id:2, list_id:sharedList1.list_id})
+          })
+      })
+    })
+
+    describe('update task', () => {
+      it('should return 200', async () => {
+        return await request(app)
+          .patch(`/list/${sharedList1.list_id}/task/${taskId}`)
+          .set('Authorization', tokens[1])
+          .send(updatedTask)
+          .expect(200)
+          .then(response => {
+            expect(response.body).toMatchObject(updatedRefTask)
+          })
+      })
+    })
+
+    describe('delete task', () => {
+      it('should return 200 and success text', async () => {
+        return await request(app)
+          .delete(`/list/${sharedList1.list_id}/task/${taskId}`)
+          .set('Authorization', tokens[1])
+          .expect(200)
+          .then(response => {
+            expect(response.body).toMatchObject(deletedTask)
+          })
+      })
     })
   })
 })
