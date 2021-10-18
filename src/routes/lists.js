@@ -37,9 +37,7 @@ module.exports = (db) => {
    *        content:
    *          application/json:
    *            schema:
-   *              type: array
-   *              lists:
-   *                $ref: '#/components/schemas/List'
+   *                $ref: '#/components/schemas/Lists'
    *      401:
    *        description: Invalid login credentials
    */
@@ -92,14 +90,14 @@ module.exports = (db) => {
    *      content:
    *        application/json:
    *          schema:
-   *            $ref: '#/components/schemas/List'
+   *            $ref: '#/components/schemas/Lists'
    *    responses:
    *      201:
    *        description: Created
    *        content:
    *          application/json:
    *            schema:
-   *              $ref: '#/components/schemas/List'
+   *              $ref: '#/components/schemas/Lists'
    *      400:
    *        description: List has been created before
    *      401:
@@ -140,7 +138,7 @@ module.exports = (db) => {
    *      content:
    *        application/json:
    *          schema:
-   *            $ref: '#/components/schemas/List'
+   *            $ref: '#/components/schemas/Lists'
    *    responses:
    *      200:
    *        description: OK
