@@ -7,7 +7,7 @@ const username = 'test_user'
 const email = 'test@gmail.com'
 const password = 'test_password'
 
-const newUser = new User({ 
+const testUser = new User({ 
   id, 
   username, 
   email, 
@@ -23,23 +23,34 @@ afterAll(async () => {
   await db.end()
 })
 
-describe('Insert data to table Users', () => {
-  it('should return User object', async () => {
-    const user = await db.insertUser(new User({ username, email, password_hash: password }))
-    expect(user).toMatchObject(newUser)
+describe('Querying into Users table to', () => {
+  describe('insert data', () => {
+    it('should return User object', async () => {
+      const user = await db.insertUser(new User({ username, email, password_hash: password }))
+      expect(user).toMatchObject(testUser)
+    })
   })
-})
 
-describe('Find data in table Users with username', () => {
-  it('should return User object', async () => {
-    const user = await db.findUserByUsername(username)
-    expect(user).toMatchObject(newUser)
-  })
-})
+  describe('find data with', () => {
+    describe('user id', () => {
+      it('should return User object', async () => {
+        const user = await db.findUserByID(id)
+        expect(user).toMatchObject(testUser)
+      })
+    })
 
-describe('Find data in table Users with email', () => {
-  it('should return User object', async () => {
-    const user = await db.findUserByEmail(email)
-    expect(user).toMatchObject(newUser)
+    describe('username', () => {
+      it('should return User object', async () => {
+        const user = await db.findUserByUsername(username)
+        expect(user).toMatchObject(testUser)
+      })
+    })
+
+    describe('email', () => {
+      it('should return User object', async () => {
+        const user = await db.findUserByEmail(email)
+        expect(user).toMatchObject(testUser)
+      })
+    })
   })
 })
