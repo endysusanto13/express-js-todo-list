@@ -2,7 +2,7 @@ const express = require('express');
 const share = require('../db/share');
 const Users_Share_Lists = require('../models/share')
 
-module.exports = (db) => {
+module.exports = (db, amqpService) => {
   const router = express.Router()
   
   /**
@@ -111,6 +111,7 @@ module.exports = (db) => {
     } else {
       const sharedList = await db.shareList(new Users_Share_Lists({ list_id:listId, shared_by_email:sharedByEmail, shared_with_email:sharedWithEmail, is_deleted:false }))
       if(!list.is_shared) { await db.updateShareStatusList(listId) }
+      await amqpService.publishRegistration({ email, task:list.title })
       res.status(200).send(sharedList)
     }
   })

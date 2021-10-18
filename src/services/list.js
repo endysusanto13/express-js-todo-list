@@ -1,3 +1,5 @@
+// For future middleware
+
 // module.exports = (db) => {
 //   const service = {}
 

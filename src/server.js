@@ -3,11 +3,14 @@ const App = require('./app')
 const Router = require('./routes')
 const AuthMiddleware = require('./middlewares/auth')
 const AuthService = require('./services/auth')
+const AmqpService = require('./services/amqp')
 const db = require('./db')
 
 const authService = AuthService(db)
+const amqpService = AmqpService()
 const authMiddleware = AuthMiddleware(authService)
-const router = Router(authMiddleware, authService, db)
+const router = Router(authMiddleware, authService, amqpService, db)
+// const router = Router(authMiddleware, authService, db)
 const app = App(router)
 
 const PORT = process.env.PORT || 3000

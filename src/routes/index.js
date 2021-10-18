@@ -2,7 +2,7 @@ const express = require('express')
 const swaggerUi = require('swagger-ui-express')
 const swaggerJsdoc = require('swagger-jsdoc')
 
-module.exports = (authMiddleware, authService, db) => {
+module.exports = (authMiddleware, authService, amqpService, db) => {
   const router = express.Router()
 
   /**
@@ -37,13 +37,10 @@ module.exports = (authMiddleware, authService, db) => {
 
   // All routes from this point will use the auth middleware
   router.use(authMiddleware)
-
-  router.use('/share', require('./share')(db))
+  
+  router.use('/share', require('./share')(db, amqpService))
   router.use('/list', require('./lists')(db))
   router.use('/list', require('./tasks')(db))
-  router.use('/', (req, res, next) => {
-    res.status(404).send(
-      "<h1>Page not found on the server</h1>")
-})
+
   return router
 }
