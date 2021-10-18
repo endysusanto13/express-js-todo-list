@@ -37,6 +37,10 @@ module.exports = (db) => {
    *          application/json:
    *            schema:
    *              $ref: '#/components/schemas/List'
+   *      400:
+   *        description: List has been created before
+   *      401:
+   *        description: User is not logged in
    */
   router.post('/', async (req, res, next) => {
     const userId = req.userId

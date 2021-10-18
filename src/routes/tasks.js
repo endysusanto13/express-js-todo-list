@@ -43,6 +43,12 @@ module.exports = (db) => {
    *          application/json:
    *            schema:
    *              $ref: '#/components/schemas/Task'
+   *      400:
+   *        description: Task has been created before
+   *      401:
+   *        description: User is not logged in
+   *      403:
+   *        description: User does not have access
    */
 
   router.post('/:listId/task', async (req, res, next) => {

@@ -4,9 +4,10 @@ module.exports = (pool) => {
   const db = {}
 
   db.insertList = async (list) => {
-    const res = await pool.query(
-      `INSERT INTO Lists (title, is_shared, is_deleted, create_user_id, update_user_id) 
-      VALUES ($1,$2,$3,$4,$5) RETURNING *`,
+    const res = await pool.query(`
+      INSERT INTO Lists (title, is_shared, is_deleted, create_user_id, update_user_id) 
+      VALUES ($1,$2,$3,$4,$5) RETURNING *
+      `,
       [list.title, list.is_shared, list.is_deleted, list.create_user_id, list.update_user_id]
     )
     return new List(res.rows[0])
@@ -60,6 +61,16 @@ module.exports = (pool) => {
       WHERE id=$3 RETURNING *
       `,
       [userId, newTitle, listId]
+    )
+    return new List(res.rows[0])
+  }
+
+  db.updateShareStatusList = async (listId) => {
+    const res = await pool.query(`
+      UPDATE Lists SET is_shared=TRUE
+      WHERE id=$1 RETURNING *
+      `,
+      [listId]
     )
     return new List(res.rows[0])
   }

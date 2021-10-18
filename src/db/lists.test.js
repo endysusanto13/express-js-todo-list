@@ -96,6 +96,21 @@ describe('Querying into Lists table to', () => {
     })
   })
 
+  describe('update share status of list', () => {
+    const anotherAuthUserId = 2
+    const updatedTitle = 'updated_test_title'
+    const sharedList = {
+      ...newList, 
+      title:updatedTitle, 
+      update_user_id:anotherAuthUserId,
+      is_shared:true
+    }
+    it('should return List object and modify is_shared attribute', async () => {
+      const list = await db.updateShareStatusList(listId)
+      expect(list).toMatchObject(sharedList)
+    })
+  })
+
   describe('delete list', () => {
     const updatedTitle = 'updated_test_title'
 
@@ -103,6 +118,7 @@ describe('Querying into Lists table to', () => {
       ...newList,
       title:updatedTitle, 
       is_deleted:true,
+      is_shared:true,
       update_user_id:testUser.id
     }
     it('should return List object with is_deleted attribute is true and update update_user_id attribute', async () => {
