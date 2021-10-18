@@ -2,7 +2,6 @@ const request = require('supertest')
 const utils = require('./utils')
 const List = require('../src/models/list')
 const Users_Share_Lists = require('../src/models/share');
-const lists = require('../src/db/lists');
 
 const app = utils.app
 const db = utils.db
@@ -271,7 +270,7 @@ describe('DELETE /list/:listId', () => {
   })
 })
 
-describe('Test features of sharing tasks', () => {
+describe('Test features of sharing lists', () => {
   let tokens = ['','','']
 
   const testUser1 = {
@@ -286,14 +285,25 @@ describe('Test features of sharing tasks', () => {
   }
   const testUsers = [testUser1, testUser2]
   
-  const list = new List({ 
-    title:'brand_new_todo_list',
+  const list1 = new List({ 
+    title:'first_todo_list',
   })
+  const list2 = new List({ 
+    title:'second_todo_list',
+  })
+  const lists = [list1, list2]
 
   const sharedList1 = new Users_Share_Lists({
     list_id:1,
     shared_by_email:'1test@gmail.com',
     shared_with_email:'2test@gmail.com',
+    is_deleted:false,
+  })
+
+  const sharedList2 = new Users_Share_Lists({
+    list_id:2,
+    shared_by_email:'2test@gmail.com',
+    shared_with_email:'1test@gmail.com',
     is_deleted:false,
   })
 
@@ -329,24 +339,26 @@ describe('Test features of sharing tasks', () => {
       })
     })
   
-    describe(`create list`, () => {
-      it('should return 201 and list title as the response', async () => {
-        return await request(app)
-          .post('/list')
-          .set('Authorization', tokens[0])
-          .send(list)
-          .expect(201)
-          .then(response => {
-            expect(response.body)
-              .toMatchObject({ 
-                id:1,
-                title:list.title,
-                is_shared:false,
-                is_deleted:false,
-                create_user_id:1,
-                update_user_id:null
-              })
-          })
+    lists.map( async (list, index) => {
+      describe(`create list ${index+1}`, () => {
+        it('should return 201 and list title as the response', async () => {
+          return await request(app)
+            .post('/list')
+            .set('Authorization', tokens[index])
+            .send(list)
+            .expect(201)
+            .then(response => {
+              expect(response.body)
+                .toMatchObject({ 
+                  id:index+1,
+                  title:list.title,
+                  is_shared:false,
+                  is_deleted:false,
+                  create_user_id:index+1,
+                  update_user_id:null
+                })
+            })
+        })
       })
     })
     
@@ -362,8 +374,46 @@ describe('Test features of sharing tasks', () => {
             })
         })
     })
+
+    describe('sharing another list', () => {
+        it('should return 200', async () => {
+          return await request(app)
+            .post(`/share/list/${sharedList2.list_id}`)
+            .set('Authorization', tokens[1])
+            .send({ email:testUser1.email })
+            .expect(200)  
+            .then(response => {
+              expect(response.body).toMatchObject(sharedList2)
+            })
+        })
+    })
   })
 
+  describe('GET lists created by a user and shared by a user', () => {
+    const reflist1 = ({
+      ...refList,
+      id:1, 
+      title:'first_todo_list',
+      create_user_id:1,
+      is_shared:true
+    })
+    const allLists = {
+      created_lists: [reflist1],
+      shared_list:[sharedList2] 
+    }
+
+    it('should return 200 and an object containing created and shared lists', async () => {
+
+      return await request(app)
+        .get(`/list/`)
+        .set('Authorization', tokens[0])
+        .expect(200)
+        .then(response => {
+          expect(response.body).toMatchObject(allLists)
+        })
+    })
+  })
+  
   describe('users that do not create the list but has access should be able to', () => {
     describe('update the list', () => {
       it('should return 200', async () => {

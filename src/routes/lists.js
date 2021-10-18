@@ -20,6 +20,45 @@ module.exports = (db) => {
   /**
    * @openapi
    * /list:
+   *  get:
+   *    tags:
+   *    - lists
+   *    description: Get all lists that a user has access to
+   *    responses:
+   *      200:
+   *        description: OK
+   *        content:
+   *          application/json:
+   *            schema:
+   *              type: array
+   *              lists:
+   *                $ref: '#/components/schemas/List'
+   *      401:
+   *        description: Invalid login credentials
+   */
+  
+  router.get('/', async (req, res, next) => {
+    const reqUserId = req.userId
+    const user = await db.findUserByID(reqUserId)
+    const createdLists = await db.getAllLists(reqUserId)
+    const sharedLists = await db.getListSharedWith(user.email)
+
+    if (!createdLists && !sharedLists) {
+      errorMsg = `You do not have any lists.`
+      res.status(404).send(errorMsg)
+    }
+    else {
+      const lists = {
+        created_lists:createdLists,
+        shared_list:sharedLists
+      }
+      res.status(200).send(lists)
+    }
+  })
+
+  /**
+   * @openapi
+   * /list:
    *  post:
    *    tags:
    *    - lists
@@ -172,7 +211,7 @@ module.exports = (db) => {
         })
       }
       if (!hasAccess) {
-        res.status(403).send(`You are not authorized to edit this TODO list.`) 
+        res.status(403).send(`You are not authorized to delete this TODO list.`) 
       }
       else {
         const deletedList = await db.deleteList(reqUserId, listId)

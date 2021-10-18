@@ -25,6 +25,11 @@ const newList = new List({
   create_user_id,
   update_user_id
 })
+const anotherList = new List({ 
+  ...newList,
+  id:2,
+  title:'another_todo_list',
+})
 
 beforeAll(async () => {
   await db.deleteAllTables()
@@ -43,10 +48,17 @@ afterAll(async () => {
 })
 
 describe('Querying into Lists table to', () => {
-  describe('insert data', () => {
+  describe('insert list', () => {
     it('should return List object', async () => {
       const list = await db.insertList(new List({ title, is_shared, is_deleted, create_user_id, update_user_id }))
       expect(list).toMatchObject(newList)
+    })
+  })
+
+  describe('insert another list', () => {
+    it('should return List object', async () => {
+      const anotherList = await db.insertList(new List({ title:'another_todo_list', is_shared, is_deleted, create_user_id, update_user_id }))
+      expect(anotherList).toMatchObject(anotherList)
     })
   })
 
@@ -62,7 +74,7 @@ describe('Querying into Lists table to', () => {
         expect(list).toBeFalsy()
       })
     })
-
+  
     describe('by title based on current user', () => {
       it('should return List object if exists', async () => {
         const list = await db.findListByTitle(newList.create_user_id, newList.title)
@@ -78,6 +90,18 @@ describe('Querying into Lists table to', () => {
         const list = await db.findListByTitle(newList.create_user_id, "wrong_title")
         expect(list).toBeFalsy()
       })
+    })
+  })
+  
+  describe('get all lists that is created by a user', () => {
+    it('should return an array of List object if exists', async () => {
+      const searchResult = await db.getAllLists(testUser.id)
+      expect(searchResult).toMatchObject([newList,anotherList])
+    })
+    
+    it('should return empty array if user have not create any lists', async () => {
+      const searchResult = await db.getAllLists(5)
+      expect(searchResult).toEqual([])
     })
   })
 

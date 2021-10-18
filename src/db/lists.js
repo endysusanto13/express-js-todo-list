@@ -12,12 +12,8 @@ module.exports = (pool) => {
     )
     return new List(res.rows[0])
   }
-  // db.getAllLists
-    // should return a new object with respective IDs and also createor
-    // {
-    //   created_list: [{id:1, title:'list1'},...]
-    //   shared_list: [{id:1, title:'list1', create_user_id:2, shared_user_id:[1,2,3] } ,...]
-    // }
+
+
   // db.getList
     // should return a new object with ID
     // {
@@ -38,22 +34,25 @@ module.exports = (pool) => {
     return res.rowCount ? new List(res.rows[0]) : null
   }
 
-  db.findListByTitle = async (create_user_id, title) => {
+  db.findListByTitle = async (createUserId, title) => {
     const res = await pool.query(`
       SELECT * FROM Lists 
       WHERE create_user_id=$1 AND title=$2
       `,
-      [create_user_id, title]
+      [createUserId, title]
     )
     return res.rowCount ? new List(res.rows[0]) : null
   }
 
-  // db.getAllLists = async () => {
-  //   const res = await pool.query(`
-  //     SELECT * FROM Lists
-  //   `)
-  //   return res.rows.map(row => new List(row))
-  // }
+  db.getAllLists = async (createUserId) => {
+    const res = await pool.query(`
+      SELECT * FROM Lists
+      WHERE create_user_id=$1
+      `,
+      [createUserId]
+    )
+    return res.rows.map(row => new List(row))
+  }
   
   db.updateList = async (userId, newTitle, listId) => {
     const res = await pool.query(`
