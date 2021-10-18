@@ -6,7 +6,7 @@ const Users_Share_Lists = require('../src/models/share');
 const app = utils.app
 const db = utils.db
 
-let tokens = ['','','']
+const tokens = ['','','']
 
 const testUser1 = {
   username:'1test_user', 

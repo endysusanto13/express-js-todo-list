@@ -271,7 +271,7 @@ describe('DELETE /list/:listId', () => {
 })
 
 describe('Test features of sharing lists', () => {
-  let tokens = ['','','']
+  const tokens = ['','','']
 
   const testUser1 = {
     username:'1test_user', 
@@ -399,7 +399,7 @@ describe('Test features of sharing lists', () => {
     })
     const allLists = {
       created_lists: [reflist1],
-      shared_list:[sharedList2] 
+      shared_list:[{...sharedList2}] 
     }
 
     it('should return 200 and an object containing created and shared lists', async () => {

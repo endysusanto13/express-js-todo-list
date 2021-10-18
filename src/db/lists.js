@@ -13,18 +13,6 @@ module.exports = (pool) => {
     return new List(res.rows[0])
   }
 
-
-  // db.getList
-    // should return a new object with ID
-    // {
-    //   id:1, 
-    //   title: 'title', 
-    //   create_user_id:3,
-    //   shared_user_id:[1,2,3], 
-    //   update_user_id:2,
-    //   tasks: ['task1', 'task2', 'task3']
-    // }
-
   db.findListByListId = async (listId) => {
     const res = await pool.query(`
       SELECT * FROM Lists WHERE id=$1

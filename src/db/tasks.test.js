@@ -75,7 +75,7 @@ describe('Querying into Tasks table to', () => {
   })
   
   describe('find task', () => {
-    describe('by id only', () => {
+    describe('by task id only', () => {
       it('should return Task object if exists', async () => {
         const task = await db.findTaskByTaskId(newTask.id)
         expect(task).toMatchObject(newTask)
@@ -84,6 +84,18 @@ describe('Querying into Tasks table to', () => {
       it('should return null if does not exists', async () => {
         const task = await db.findTaskByTaskId(5)
         expect(task).toBeFalsy()
+      })
+    })
+
+    describe('by list id only', () => {
+      it('should return an array of Task objects if exists', async () => {
+        const task = await db.findTaskByListId(listId)
+        expect(task).toEqual([newTask])
+      })
+      
+      it('should return an empty array if does not exists', async () => {
+        const task = await db.findTaskByListId(5)
+        expect(task).toEqual([])
       })
     })
     

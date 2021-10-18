@@ -16,15 +16,28 @@ module.exports = (db) => {
    *      properties:
    *        email:
    *          type: string
+   *  securitySchemes:
+   *    bearerAuth:
+   *      type: http
+   *      scheme: bearer
+   *      bearerFormat: JWT
    */
 
   /**
    * @openapi
    * /share/list/{listId}:
    *  post:
+   *    security:
+   *    - bearerAuth: []
    *    tags:
    *    - share
    *    description: Give list access to other user
+   *    parameters:
+   *      - in: path
+   *        name: listId
+   *        schema:
+   *          type: integer
+   *        required: true
    *    requestBody:
    *      required: true
    *      content:

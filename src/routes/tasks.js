@@ -15,12 +15,100 @@ module.exports = (db) => {
    *      properties:
    *        title:
    *          type: string
+   *  securitySchemes:
+   *    bearerAuth:
+   *      type: http
+   *      scheme: bearer
+   *      bearerFormat: JWT
    */
+
+  /**
+   * @openapi
+   * /list/{listId}:
+   *  get:
+   *    security:
+   *    - bearerAuth: []
+   *    tags:
+   *    - lists
+   *    description: Get a list with their respective subtasks
+   *    parameters:
+   *      - in: path
+   *        name: listId
+   *        schema:
+   *          type: integer
+   *        required: true
+   *    responses:
+   *      200:
+   *        description: OK
+   *        content:
+   *          application/json:
+   *            schema:
+   *              type: array
+   *              lists:
+   *                $ref: '#/components/schemas/List'
+   *      401:
+   *        description: Invalid login credentials
+   */
+  
+   router.get('/:listId', async (req, res, next) => {
+    const listId = req.params.listId
+    const reqUserId = req.userId
+    const list = await db.findListByListId(listId)
+
+    if (!list || list.is_deleted) {
+      res.status(404).send(`List id ${listId} is not found.`)
+    }
+    else if (list.create_user_id !== reqUserId && !list.is_shared) {
+      res.status(403).send(`You are not authorized to delete this TODO list.`)
+    }
+    // if list is shared and you are part of the user that is shared
+    else {
+      const user = await db.findUserByID(reqUserId)
+      const reqEmail = user.email
+
+      let hasAccess = list.create_user_id === reqUserId
+
+      const sharedListArr = await db.getSharedList(listId)
+      if (sharedListArr.length > 0 && !hasAccess) {
+        sharedListArr.map((sharedList) => {
+          if (sharedList.shared_with_email === reqEmail) { hasAccess = true }
+        })
+      }
+      if (!hasAccess) {
+        res.status(403).send(`You are not authorized to delete this TODO list.`) 
+      }
+      else {
+        const sharedList = await db.getSharedList(listId)
+        const sharedUsers = []
+
+        sharedList.map((data) => {
+          sharedUsers.push(data.shared_with_email)
+        })
+
+        const taskTitles = []
+        const tasks = await db.findTaskByListId(listId)
+        tasks.map((task) => {
+          if (!task.is_deleted) {
+            taskTitles.push(task.title)
+          }
+        })
+        const searchedList = ({
+          ...list,
+          shared_user_id:sharedUsers,
+          tasks:taskTitles
+        })
+        
+        res.send(searchedList)
+      }
+    }
+  })
 
   /**
    * @openapi
    * /list/{listId}/task:
    *  post:
+   *    security:
+   *    - bearerAuth: []
    *    tags:
    *    - tasks
    *    description: Create a new task within a TODO list
@@ -97,8 +185,10 @@ module.exports = (db) => {
    * @openapi
    * /list/{listId}/task/{taskId}:
    *  patch:
+   *    security:
+   *    - bearerAuth: []
    *    tags:
-   *    - task
+   *    - tasks
    *    description: Update a task
    *    parameters:
    *      - in: path
@@ -176,8 +266,10 @@ module.exports = (db) => {
    * @openapi
    * /list/{listId}/task/{taskId}:
    *  delete:
+   *    security:
+   *    - bearerAuth: []
    *    tags:
-   *    - task
+   *    - tasks
    *    description: Delete a task
    *    parameters:
    *      - in: path

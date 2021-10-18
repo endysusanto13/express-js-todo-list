@@ -22,6 +22,15 @@ module.exports = (pool) => {
     return res.rowCount ? new Task(res.rows[0]) : null
   }
 
+  db.findTaskByListId = async (listId) => {
+    const res = await pool.query(`
+      SELECT * FROM Tasks WHERE list_id=$1
+      `,
+      [listId]
+    )
+    return res.rows.map(row => new Task(row))
+  }
+
   db.findTaskByTitle = async (listId, taskTitle) => {
     const res = await pool.query(`
       SELECT * FROM Tasks 

@@ -41,6 +41,9 @@ module.exports = (authMiddleware, authService, db) => {
   router.use('/share', require('./share')(db))
   router.use('/list', require('./lists')(db))
   router.use('/list', require('./tasks')(db))
-
+  router.use('/', (req, res, next) => {
+    res.status(404).send(
+      "<h1>Page not found on the server</h1>")
+})
   return router
 }

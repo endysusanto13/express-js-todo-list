@@ -8,19 +8,26 @@ module.exports = (db) => {
    * @openapi
    * components:
    *  schemas:
-   *    List:
+   *    Lists:
    *      type: object
    *      required:
    *        - title
    *      properties:
    *        title:
    *          type: string
+   *  securitySchemes:
+   *    bearerAuth:
+   *      type: http
+   *      scheme: bearer
+   *      bearerFormat: JWT
    */
 
   /**
    * @openapi
    * /list:
    *  get:
+   *    security:
+   *    - bearerAuth: []
    *    tags:
    *    - lists
    *    description: Get all lists that a user has access to
@@ -40,10 +47,25 @@ module.exports = (db) => {
   router.get('/', async (req, res, next) => {
     const reqUserId = req.userId
     const user = await db.findUserByID(reqUserId)
-    const createdLists = await db.getAllLists(reqUserId)
-    const sharedLists = await db.getListSharedWith(user.email)
 
-    if (!createdLists && !sharedLists) {
+    // allCreatedLists and allSharedLists include those that are soft deleted
+    const allCreatedLists = await db.getAllLists(reqUserId)
+    const allSharedLists = await db.getListSharedWith(user.email)
+    
+    let createdLists = []
+    let sharedLists = []
+    allCreatedLists.map((list)=> {
+      if (!list.is_deleted) {
+        createdLists.push(list)
+      }
+    })
+    allSharedLists.map((list)=> {
+      if (!list.is_deleted) {
+        sharedLists.push(list)
+      }
+    })
+
+    if (createdLists.length === 0 && sharedLists.length === 0) {
       errorMsg = `You do not have any lists.`
       res.status(404).send(errorMsg)
     }
@@ -60,6 +82,8 @@ module.exports = (db) => {
    * @openapi
    * /list:
    *  post:
+   *    security:
+   *    - bearerAuth: []
    *    tags:
    *    - lists
    *    description: Create a new TODO list
@@ -84,8 +108,8 @@ module.exports = (db) => {
   router.post('/', async (req, res, next) => {
     const userId = req.userId
     const { title } = req.body
-    const isCreated = await db.findListByTitle(userId, title)
-    if (isCreated) {
+    const list = await db.findListByTitle(userId, title)
+    if (list && !list.is_deleted) {
       errorMsg = `'${title}' has already been created by you.`
       res.status(400).send(errorMsg)
     }
@@ -100,8 +124,10 @@ module.exports = (db) => {
    * @openapi
    * /list/{listId}:
    *  patch:
+   *    security:
+   *    - bearerAuth: []
    *    tags:
-   *    - list
+   *    - lists
    *    description: Update a list
    *    parameters:
    *      - in: path
@@ -167,8 +193,10 @@ module.exports = (db) => {
    * @openapi
    * /list/{listId}:
    *  delete:
+   *    security:
+   *    - bearerAuth: []
    *    tags:
-   *    - list
+   *    - lists
    *    description: Delete a list
    *    parameters:
    *      - in: path

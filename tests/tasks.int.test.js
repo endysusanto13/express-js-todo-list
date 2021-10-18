@@ -127,6 +127,25 @@ describe('POST /task', () => {
   })
 })
 
+describe('GET /list/:listId', () => {
+  const searchedList = ({
+    ...testList,
+    shared_user_id:[],
+    tasks:[testTask.title]
+  }) 
+  describe('get a list and its tasks', () => {
+    it('should return 200 and an object containing a single title and tasks data', async () => {
+      return await request(app)
+        .get(`/list/${listId}`)
+        .set('Authorization', token)
+        .expect(200)
+        .then(response => {
+          expect(response.body).toMatchObject(searchedList)
+        })
+    })
+  })
+})
+
 describe('PATCH /list/:listId/task/:taskId', () => {
   beforeAll(async () => {
     await db.clearTasksTable()
@@ -311,7 +330,7 @@ describe('DELETE /:listId/task/:taskId', () => {
 })
 
 describe('Test features of sharing lists', () => {
-  let tokens = ['','','']
+  const tokens = ['','','']
 
   const testUser1 = {
     username:'1test_user', 
