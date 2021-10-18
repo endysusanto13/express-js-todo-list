@@ -8,6 +8,7 @@ const db = {
   ...require('./users')(pool),
   ...require('./lists')(pool),
   ...require('./tasks')(pool),
+  ...require('./share')(pool),
 }
 
 db.initialise = async () => {
@@ -46,14 +47,15 @@ db.initialise = async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS Users_Share_Lists (
       list_id INTEGER NOT NULL,
-      shared_by_user_id INTEGER NOT NULL,
-      shared_to_user_id INTEGER NOT NULL,
-      FOREIGN KEY (list_id) REFERENCES Lists(id) ON DELETE CASCADE,
-      FOREIGN KEY (shared_to_user_id) REFERENCES Lists(id) ON DELETE CASCADE
+      shared_by_email VARCHAR(100) NOT NULL,
+      shared_with_email VARCHAR(100) NOT NULL,
+      is_deleted BOOLEAN NOT NULL,
+      FOREIGN KEY (list_id) REFERENCES Lists(id) ON DELETE CASCADE
       )
     `)
+  // Doesn't need id primary key as list_id is unique for all users
   // Don't delete the shared link even if the user that share has been deleted
-  // If need to cascade delete next time, use `FOREIGN KEY (shared_by_user_id) REFERENCES Lists(id) ON DELETE CASCADE`
+  // If need to cascade delete next time, use `FOREIGN KEY (shared_by_user_id) REFERENCES Users(email) ON DELETE CASCADE`
 }
 
 // For general query using the same pool without return value

@@ -91,22 +91,38 @@ module.exports = (db) => {
     const reqUserId = req.userId
     const { title } = req.body
     const list = await db.findListByListId(listId)
-    // #TODO - Check list in shared list later on
+
     if (!list || list.is_deleted) {
       res.status(404).send(`List id ${listId} is not found.`)
     }
-    else if (list.create_user_id !== reqUserId) {
+    else if (list.create_user_id !== reqUserId && !list.is_shared) {
       res.status(403).send(`You are not authorized to edit this TODO list.`) 
     }
-    else if (title === list.title) {
-      res.status(400).send(`There is no change to ${list.title}.`) 
-    }
+    // if list is shared and you are part of the user that is shared
     else {
-      const updatedList = await db.updateList(reqUserId, title, listId)
-      res.send(updatedList)
+      const user = await db.findUserByID(reqUserId)
+      const reqEmail = user.email
+
+      let hasAccess = list.create_user_id === reqUserId
+
+      const sharedListArr = await db.getSharedList(listId)
+      if (sharedListArr.length > 0 && !hasAccess) {
+        sharedListArr.map((sharedList) => {
+          if (sharedList.shared_with_email === reqEmail) { hasAccess = true }
+        })
+      }
+      if (!hasAccess) {
+        res.status(403).send(`You are not authorized to edit this TODO list.`) 
+      }
+      else if (title === list.title) {
+        res.status(400).send(`There is no change to ${list.title}.`) 
+      }
+      else {
+        const updatedList = await db.updateList(reqUserId, title, listId)
+        res.send(updatedList)
+      }
     }
   })
-
 
   /**
    * @openapi
@@ -136,16 +152,32 @@ module.exports = (db) => {
     const reqUserId = req.userId
     const list = await db.findListByListId(listId)
 
-    // #TODO - Check list in shared list later on
     if (!list || list.is_deleted) {
       res.status(404).send(`List id ${listId} is not found.`)
     }
-    else if (list.create_user_id !== reqUserId) {
+    else if (list.create_user_id !== reqUserId && !list.is_shared) {
       res.status(403).send(`You are not authorized to delete this TODO list.`)
     }
+    // if list is shared and you are part of the user that is shared
     else {
-      const deletedList = await db.deleteList(reqUserId, listId)
-      res.send(deletedList)
+      const user = await db.findUserByID(reqUserId)
+      const reqEmail = user.email
+
+      let hasAccess = list.create_user_id === reqUserId
+
+      const sharedListArr = await db.getSharedList(listId)
+      if (sharedListArr.length > 0 && !hasAccess) {
+        sharedListArr.map((sharedList) => {
+          if (sharedList.shared_with_email === reqEmail) { hasAccess = true }
+        })
+      }
+      if (!hasAccess) {
+        res.status(403).send(`You are not authorized to edit this TODO list.`) 
+      }
+      else {
+        const deletedList = await db.deleteList(reqUserId, listId)
+        res.send(deletedList)
+      }
     }
   })
 
