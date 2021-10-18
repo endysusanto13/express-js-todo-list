@@ -78,7 +78,7 @@ module.exports = (db) => {
    *      401:
    *        description: User is not logged in
    *      403:
-   *        description: User do not have access
+   *        description: User does not have access
    *      404:
    *        description: List is not found
    */
@@ -88,8 +88,8 @@ module.exports = (db) => {
     const { title } = req.body
     const list = await db.findListByListId(listId)
     // #TODO - Check list in shared list later on
-    if (!list) {
-      res.status(404).send(`List id ${listId} is not found`)
+    if (!list || list.is_deleted) {
+      res.status(404).send(`List id ${listId} is not found.`)
     }
     else if (list.create_user_id !== reqUserId) {
       res.status(403).send(`You are not authorized to edit this TODO list.`) 
@@ -123,7 +123,7 @@ module.exports = (db) => {
    *      401:
    *        description: User is not logged in
    *      403:
-   *        description: User do not have access
+   *        description: User does not have access
    *      404:
    *        description: List is not found
    */
@@ -133,11 +133,8 @@ module.exports = (db) => {
     const list = await db.findListByListId(listId)
 
     // #TODO - Check list in shared list later on
-    if (!list) {
-      res.status(404).send(`List id ${listId} is not found`)
-    }
-    else if (list.is_deleted) {
-      res.status(404).send(`List id ${listId} is not found`)
+    if (!list || list.is_deleted) {
+      res.status(404).send(`List id ${listId} is not found.`)
     }
     else if (list.create_user_id !== reqUserId) {
       res.status(403).send(`You are not authorized to delete this TODO list.`)

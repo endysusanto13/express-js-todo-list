@@ -39,6 +39,7 @@ module.exports = (authMiddleware, authService, db) => {
   router.use(authMiddleware)
 
   router.use('/list', require('./lists')(db))
+  router.use('/list', require('./tasks')(db))
 
   return router
 }
