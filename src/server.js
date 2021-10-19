@@ -10,7 +10,6 @@ const authService = AuthService(db)
 const amqpService = AmqpService()
 const authMiddleware = AuthMiddleware(authService)
 const router = Router(authMiddleware, authService, amqpService, db)
-// const router = Router(authMiddleware, authService, db)
 const app = App(router)
 
 const PORT = process.env.PORT || 3000
