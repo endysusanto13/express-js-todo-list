@@ -16,16 +16,18 @@ async function main () {
   channel.consume(QUEUE, (msg) => {
     const data = JSON.parse(msg.content)
     console.log('Received:', data)
-    service.sendEmail(
-      data.email,
-      'Someone has shared a task with you!',
-      `Hi ${data.email}, you have received a new task '${data.task}'!`
-    ).then(() => {
-      console.log(`Email sent to ${data.email}`)
-      channel.ack(msg)
-    }).catch((err) => {
-      channel.nack(msg)
-    })
+    console.log(`Email implementation feature has been suspended. But we have received your shared task: ${data}.`)
+    // service.sendEmail(
+    //   data.email,
+    //   'Someone has shared a task with you!',
+    //   `Hi ${data.email}, you have received a new task '${data.task}'!`
+    // )
+    // .then(() => {
+    //   console.log(`Email sent to ${data.email}`)
+    //   channel.ack(msg)
+    // }).catch((err) => {
+    //   channel.nack(msg)
+    // })
   })
 }
 
